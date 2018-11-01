@@ -1,3 +1,55 @@
+## React Rendering Experimenter
+
+I put this project together to help people experiment and understand issues around rendering using keys (see the question below).
+
+The app simply renders a list. The `<ListOwner>` owns the list, delegating to `<ListRenderer>`
+to do the actual rendering. `<ListOwner>` also adds some buttons you can use to render different output.
+
+The console shows what gets rendered to the VDOM (using lifecycle methods in child elements),
+and also to the real DOM (using a DOM _MutationObserver_).
+
+To render the list, `<ListRenderer>` assigns a `key` prop using `item.id`, but you can change this.
+
+Experiment to see how rendering happens if you:
+
+  1. don't use a `key` prop; and
+  2. set the `key` prop to the `index` provided by `map()`.
+
+Please feel free to submit questions, issues or PRs.
+
+
+## Explanation: Keys and Reconciliation
+
+This explanation was prompted by the following question.
+
+### Question: Does the reconciler compare both the key and the contents when rendering?
+
+1. Keys are about identity. They are a way for React to determine which elements from a render can be reused from a previous one.
+
+2. Keys are only present at the VDOM level.
+
+3. Rendering:
+    1. React compares the new tree (VDOM) against the previous one.
+
+    2. For any elements that differ, React will create, delete or modify elements
+      in the DOM so that the DOM now matches the new VDOM - _regardless of the presence of keys_.
+    
+    3. If keys are present, React will use them to determine which items in a list in the new
+      VDOM correspond to items in the original VDOM (and therefore DOM), so it can
+      reuse them.
+
+        - If items in a list don't have keys, React will re-render the entire list each time.
+        - If keys are different, React will re-render the component. In other words, it will unmount and destroy the existing component, then instantiate and create the new DOM node.
+        - If keys are the same (and the components are of the same type), React is able to _update_ the component. In other words, it will only need to update its contents.
+
+        You can see in the [source code](https://github.com/facebook/react/blob/83381c1673d14cd16cf747e34c945291e5518a86/src/renderers/shared/stack/reconciler/ReactChildReconciler.js) where React deals with duplicate keys (line 44), where it updates components or instantiates new components before mounting them (lines 140-163), and where it unmounts old components that no longer exist (line 168).
+
+<br />
+
+---
+
+## Create React App README
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 Below you will find some information on how to perform common tasks.<br>
